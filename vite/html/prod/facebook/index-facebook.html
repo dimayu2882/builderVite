@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Totalgames Playable</title>
+
+	<%= require('html-loader!../../common/meta.html').default %>
+
+	<link href="css/style-dev.css" inline>
+
+	<script src="main.js"></script>
+
+	<script>		
+		window.addEventListener("load", onWindowLoaded);
+
+        function onWindowLoaded() {
+            window.removeEventListener("load", onWindowLoaded);
+            initApplication();
+        }       
+		
+		function initApplication() {
+			app.settings.versionId = Number("<%= htmlWebpackPlugin.options.versionId %>");            
+			app.settings.isSoundButton = false;
+			app.settings.platform = "facebook";
+			app.settings.language = "<%= htmlWebpackPlugin.options.language %>";
+			app.settings.titleKey = "<%= htmlWebpackPlugin.options.titleKey %>";
+			Object.freeze( app.settings );
+			app.init();
+            app.openStore = openStore;
+		}
+
+        function openStore() {
+            FbPlayableAd.onCTAClick();
+        }
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="main">		
+		<div id="canvas3d"></div>
+		<div id="canvas2d"></div>
+	</div>
+</body>
+
+</html>

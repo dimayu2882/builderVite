@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Crada Playable</title>
+
+        <%= require('html-loader!../common/meta.html').default %>
+
+        <link href="css/style-dev.css" inline />
+
+        
+
+        <script>
+            window.addEventListener("load", initApplication);
+
+            function initApplication() {
+                window.removeEventListener("load", initApplication);
+
+                app.settings.versionId = Number("<%= htmlWebpackPlugin.options.versionId %>");
+                app.settings.store = {
+                    ios: "<%= htmlWebpackPlugin.options.storeIOS %>",
+                    android: "<%= htmlWebpackPlugin.options.storeAndroid %>",
+                };
+                app.settings.language = "<%= htmlWebpackPlugin.options.language %>";
+                app.settings.platform = "dev";
+                Object.freeze(app.settings);
+                app.init();
+                app.gameEnd = gameEnd;
+            }
+
+            function gameEnd() {
+                console.log("gameEnd");
+            }
+        </script>
+    </head>
+
+    <body ondragstart="return false;" ondrop="return false;">
+        <div id="main">
+            <div id="canvas3d"></div>
+            <div id="canvas2d"></div>
+        </div>
+    </body>
+
+    <script inline-asset="main.js"></script>
+</html>

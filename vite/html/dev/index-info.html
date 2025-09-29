@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Crada Playable Info</title>	
+    <style>
+        .document {            
+            --breakpoint-xs: 0;
+            --breakpoint-sm: 576px;
+            --breakpoint-md: 768px;
+            --breakpoint-lg: 992px;
+            --breakpoint-xl: 1200px;
+            --font-family-sans-serif: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            --font-family-monospace: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+        }
+
+        div {
+            display: block;
+            unicode-bidi: isolate;
+        }
+
+        body {      
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;            
+            box-sizing: border-box;
+            margin: 0;
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            background-color: #fff;
+        }   
+            
+
+        h3 {            
+            text-align: left;
+            box-sizing: border-box;
+            margin-top: 0;
+            margin-bottom: .5rem;
+            font-family: inherit;
+            font-weight: 500;
+            line-height: 1.2;
+            color: inherit;
+            font-size: 1.75rem;
+        }
+
+        h4 {            
+            text-align: left;
+            box-sizing: border-box;
+            margin-top: 0;
+            margin-bottom: .5rem;
+            font-family: inherit;
+            font-weight: 500;
+            line-height: 1.2;
+            color: inherit;
+            font-size: 1.5rem;
+        }
+
+        th {            
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            line-height: 1.5;
+            border-collapse: collapse;
+            box-sizing: border-box;
+            text-align: inherit;
+            padding: .75rem;
+            border-top: 1px solid #dee2e6;
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            color: #fff;
+            background-color: #212529;
+            border-color: #32383e;
+        }
+
+        tbody {            
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            border-collapse: collapse;
+            box-sizing: border-box;
+        }
+
+        td {            
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            border-collapse: collapse;
+            box-sizing: border-box;
+            padding: .75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table {            
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            box-sizing: border-box;
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 1rem;
+            background-color: transparent;
+        }
+
+        .thead-dark {            
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            border-collapse: collapse;
+            box-sizing: border-box;
+        }       
+    
+        .container {            
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            box-sizing: border-box;
+            width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+            max-width: 960px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <br>
+        <h3>QA</h3>
+        <br>
+        <h4>Base</h4>
+        <ul>
+            <li><a href="index.html">basic playable</a></li>
+            <li><a href="google.html">google/adwords</a></li>
+            <li><a href="mraid.html">mraid</a></li>
+            <li><a href="liftoff.html">liftoff</a></li>
+            <li><a href="<%= htmlWebpackPlugin.options.deviceHtmlHref %>" target="_blank">device.html</a></li>
+        </ul>
+        <br>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Versions</th>
+                </tr>
+            </thead>
+            <%= htmlWebpackPlugin.options.versionBodyHtml %>
+        </table>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Languages</th>
+                </tr>
+            </thead>
+            <%= htmlWebpackPlugin.options.languagesBodyHtml %>
+        </table>
+        </div>
+        </body>
+
+</html>

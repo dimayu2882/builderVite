@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Totalgames Playable</title>
+
+	<%= require('html-loader!../../common/meta.html').default %>
+
+	<link href="css/style-dev.css" inline>
+	<script inline-asset="main.js"></script>
+
+	<script>		
+		window.addEventListener("load", onWindowLoaded);
+
+        function onWindowLoaded() {
+            window.removeEventListener("load", onWindowLoaded);
+
+            if (mraid.getState() === "loading") {
+                mraid.addEventListener('ready', mraidIsReady);
+            } else {
+                mraidIsReady();
+            }
+        }
+
+        function mraidIsReady() {
+            mraid.removeEventListener('ready', mraidIsReady);
+
+            if (mraid.isViewable()) {
+                initApplication();
+            } else {
+                mraid.addEventListener("viewableChange", mraidViewableChange);
+            }
+        }
+
+        function mraidViewableChange(viewable) {
+            if (viewable) {
+                mraid.removeEventListener("viewableChange", mraidViewableChange);
+                initApplication();
+            }
+        }        
+		
+		function initApplication() {
+            app.settings.versionId = Number("<%= htmlWebpackPlugin.options.versionId %>");
+            app.settings.platform = "smadex";
+			app.settings.language = "<%= htmlWebpackPlugin.options.language %>";
+            app.settings.titleKey = "<%= htmlWebpackPlugin.options.titleKey %>";
+            //app.settings.isDownloadButton = false;
+            app.settings.isSoundButton = true;
+			Object.freeze( app.settings );
+
+			app.init();
+            app.openStore = openStore;
+            mraid.addEventListener("orientationchange", mraidOrientationChange); 
+		}      
+        
+        function mraidOrientationChange() {
+            app.resize.onWindowResize();
+        }
+
+        function openStore() {
+            smxTracking.redirect( app.storeLink );
+        }
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="main">		
+		<div id="canvas3d"></div>
+		<div id="canvas2d"></div>
+	</div>
+</body>
+
+</html>

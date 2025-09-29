@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Totalgames Playable</title>
+    <%= require('html-loader!../../common/meta.html').default %>
+    <link href="css/style-dev.css" inline>
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+    <div id="loader"></div>
+    <div id="main">
+        <div id="canvas3d"></div>
+        <div id="canvas2d"></div>
+    </div>
+    <div id="script-container"></div>
+
+    <script>
+        window.addEventListener("load", onWindowLoaded);
+
+        var counter = 0;
+
+        function onWindowLoaded() {
+            window.removeEventListener("load", onWindowLoaded);
+            loadScript()
+            setTimeout(function() {
+                counter++;
+                initApplication();
+            }, 300)
+        }
+
+        function loadScript(relativeLocation) {
+            var ROOT_URL = '';
+
+            if (typeof LIFTOFF_ROOT_URL !== 'undefined') {
+                ROOT_URL = LIFTOFF_ROOT_URL
+            }
+
+            const scriptEl = document.createElement("script");
+            scriptEl.src = ROOT_URL + "main.js";
+            document.getElementById("script-container").appendChild(scriptEl);
+            scriptEl.onload = function(){
+                counter++;
+                initApplication();
+            }
+        }
+        
+        function initApplication() {
+            if (counter !== 2) return; 
+            
+            app.settings.versionId = Number("<%= htmlWebpackPlugin.options.versionId %>");  
+            app.settings.store = {
+				ios: "<%= htmlWebpackPlugin.options.storeIOS %>",
+				android: "<%= htmlWebpackPlugin.options.storeAndroid %>"
+			}; 
+            app.settings.isDownloadButton = true;         
+            app.settings.isSoundButton = false;
+            app.settings.platform = "liftoff";
+			app.settings.language = "<%= htmlWebpackPlugin.options.language %>";
+            app.settings.titleKey = "<%= htmlWebpackPlugin.options.titleKey %>";
+            Object.freeze( app.settings );
+
+            app.init();
+            if (window._LIFTOFF_ENV) {
+                app.openStore = openStore;
+            }
+
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+        function openStore() {            
+            window.open(window._LIFTOFF_ENV.pinpointURL, '_blank');            
+        }
+    </script>
+</body>
+
+</html>
