@@ -1,6 +1,6 @@
 export const FONT_DATA_PINK_SANS = `info face="PinkSans-100" size=90 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=1,1,1,1 spacing=1,1
 common lineHeight=95 base=81 scaleW=415 scaleH=426 pages=1 packed=0
-page id=0 file="PinkSans-100.png"
+page id=0 file="PinkSans.png"
 chars count=91
 char id=32 x=0 y=0 width=0 height=0 xoffset=0 yoffset=0 xadvance=18 page=0 chnl=15
 char id=33 x=401 y=0 width=14 height=65 xoffset=2 yoffset=17 xadvance=18 page=0 chnl=15

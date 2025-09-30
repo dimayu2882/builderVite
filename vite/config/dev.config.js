@@ -49,9 +49,9 @@ export default defineConfig({
 	root: workFolderPath,
 	base: './',
 	server: {
+		port: 8080,
+		host: "0.0.0.0",
 		open: true,
-		port: 5173,
-		strictPort: true,
 	},
 	build: {
 		outDir: 'dist',

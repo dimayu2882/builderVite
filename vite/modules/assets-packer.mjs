@@ -8,6 +8,7 @@ export default class AssetsPacker {
 	base64Prefix = {
 		'.jpg': 'data:image/jpeg;base64,',
 		'.png': 'data:image/png;base64,',
+		'.webp': 'data:image/webp;base64,',
 		'.mp3': 'data:audio/mpeg;base64,',
 		'.glb': 'data:application/octet-stream;base64,',
 		'.json': 'data:application/json;base64,',
@@ -22,12 +23,12 @@ export default class AssetsPacker {
 	
 	async pack(onComplete = () => {}, language = this.defaultLanguage) {
 		try {
-			console.log(`\n=== Начинаем упаковку ассетов для языка: ${language} ===`);
 			const fileList = await this.getFiles(this.inputAssetsFolderPath);
 			if (!fileList.length) console.warn('⚠️ Файлы не найдены в папке:', this.inputAssetsFolderPath);
 			
 			let content = `const assets = [`;
 			let addedCount = 0;
+			const assetNames = [];
 			
 			for (let filePath of fileList) {
 				const extension = path.extname(filePath);
@@ -36,10 +37,13 @@ export default class AssetsPacker {
 					console.log(`Пропущен файл с неподдерживаемым расширением: ${filePath}`);
 					continue;
 				}
-				console.log("Проверяем файл:", filePath);
 				
-				const relativePathArr = path.relative(this.inputAssetsFolderPath, filePath).split(path.sep);
-				let fileName = relativePathArr.join('/');
+				let fileName = path.basename(filePath);
+				
+				// Если файл находится в папке fonts, добавляем префикс "font/"
+				const isFontFile = filePath.includes(path.sep + 'fonts' + path.sep) ||
+							  filePath.endsWith(path.sep + 'fonts');
+				if (isFontFile) fileName = 'fonts/' + fileName;
 				
 				if (fileName.startsWith('#')) {
 					console.log(`Пропущен файл, имя которого начинается с #: ${fileName}`);
@@ -50,7 +54,6 @@ export default class AssetsPacker {
 				if (fileName.includes(LANGUAGES_FOLDER)) {
 					const pattern = `${LANGUAGES_FOLDER}/${language}/`;
 					if (!fileName.includes(pattern)) {
-						console.log(`Файл не для текущего языка и пропущен: ${fileName}`);
 						continue;
 					}
 					fileName = fileName.replace(pattern, '');
@@ -63,14 +66,17 @@ export default class AssetsPacker {
 				}
 				
 				content += `\n\t{ name: "${fileName}", src: "${loaderPrefix}${base64Str}" },`;
+				assetNames.push(fileName);
 				addedCount++;
-				console.log(`Добавлен ассет: ${fileName}`);
 			}
 			
 			content += `\n];\n\nexport { assets };`;
 			
 			await this.save(content);
-			console.log(`✅ Упаковано ${addedCount} ассетов. Файл создан: ${this.outputFilePath}`);
+			
+			// Обновляем файл enums.mjs
+			await this.updateEnumsFile(assetNames);
+			
 			onComplete();
 		} catch (err) {
 			console.error('Ошибка при упаковке ассетов:', err);
@@ -123,6 +129,58 @@ export default class AssetsPacker {
 			return dirs.length ? dirs : ['en'];
 		} catch {
 			return ['en'];
+		}
+	}
+	
+	async updateEnumsFile(assetNames) {
+		try {
+			const enumsPath = path.resolve(this.inputAssetsFolderPath, '..', 'src', 'modules', 'utils', 'enums.mjs');
+			let content = await fs.readFile(enumsPath, 'utf-8');
+			
+			// Генерируем объект assetsNames
+			let assetsNamesContent = '\n\nexport const assetsNames = {\n';
+			
+			// Добавляем каждый ассет в объект
+			assetNames.forEach(fullName => {
+				// Удаляем расширение файла
+				const nameWithoutExt = fullName.replace(/\.[^/.]+$/, '');
+				const extension = path.extname(fullName).toLowerCase();
+				
+				// Проверяем, является ли файл звуковым
+				const isSound = ['.mp3', '.wav', '.ogg', '.m4a'].includes(extension);
+				
+				// Преобразуем имя в верблюжью нотацию
+				let camelCaseName = nameWithoutExt
+					.split(/[-_\s]+/)
+					.map((word, index) => 
+						index === 0 
+							? word.toLowerCase() 
+							: word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+					)
+					.join('')
+					.replace(/[^a-zA-Z0-9]/g, '');
+				
+				// Добавляем префикс Sound для звуковых файлов
+				if (isSound) {
+					camelCaseName = 'sound' + camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1);
+				}
+				
+				assetsNamesContent += `\t${camelCaseName}: '${nameWithoutExt}',\n`;
+			});
+			
+			assetsNamesContent += '};\n';
+			
+			// Удаляем старый объект assetsNames, если он существует
+			content = content.replace(/export const assetsNames = \{[^}]*\};?\n*/g, '');
+			
+			// Добавляем новый объект в конец файла
+			content = content.trim() + '\n' + assetsNamesContent;
+			
+			// Сохраняем обновленный файл
+			await fs.writeFile(enumsPath, content, 'utf-8');
+			console.log('✅ Файл enums.mjs успешно обновлен с объектом assetsNames');
+		} catch (err) {
+			console.error('Ошибка при обновлении файла enums.mjs:', err);
 		}
 	}
 	
