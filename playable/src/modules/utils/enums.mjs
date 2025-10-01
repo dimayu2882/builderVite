@@ -160,7 +160,7 @@ export const assetsNames = {
 	cowmilk4: 'cowMilk-4',
 	cowmilk5: 'cowMilk-5',
 	download: 'download',
-	fontspinksans: 'fonts/PinkSans',
+	fontsPinksans: 'fonts/PinkSans',
 	hand: 'hand',
 	heart: 'heart',
 	human1: 'human-1',
