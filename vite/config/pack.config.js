@@ -1,12 +1,14 @@
-const fs = require('fs');
-const path = require('path');
-const clc = require('cli-color');
-const texturePacker = require('free-tex-packer-core');
+import fs from 'fs';
+import path from 'path';
+import clc from 'cli-color';
+import texturePacker from 'free-tex-packer-core';
+
+// =================== Setup ===================
 
 checkFolderNameArgument();
 
 const packedFolderName = process.argv[2].replaceAll('#', '');
-const workFolderPath = process.env.INIT_CWD;
+const workFolderPath = 'playable';
 let inputSheetFolderPath = path.resolve(workFolderPath, 'assets', 'images', packedFolderName);
 const outputSheetFolderPath = path.resolve(workFolderPath, 'assets', 'sheets');
 
@@ -28,11 +30,12 @@ const packOptions = {
 	prependFolderName: true
 };
 
-// Проверки
+// =================== Run ===================
+
 checkPackedFolderExist();
 packImagesToSheet();
 
-// ========== Функции ==========
+// =================== Functions ===================
 
 function checkFolderNameArgument() {
 	if (process.argv.length === 2) {
@@ -52,20 +55,13 @@ function checkPackedFolderExist() {
 }
 
 function generateImagesList() {
-	const images = [];
 	const fileList = fs.readdirSync(inputSheetFolderPath);
-	
-	for (const fileName of fileList) {
-		const ext = path.extname(fileName);
-		if (!imageExtensions.includes(ext)) continue; // только картинки для спрайтшита
-		
-		images.push({
-			path: packedFolderName + '/' + fileName,
+	return fileList
+		.filter(fileName => imageExtensions.includes(path.extname(fileName)))
+		.map(fileName => ({
+			path: `${packedFolderName}/${fileName}`,
 			contents: fs.readFileSync(path.resolve(inputSheetFolderPath, fileName))
-		});
-	}
-	
-	return images;
+		}));
 }
 
 function packImagesToSheet() {
@@ -73,7 +69,7 @@ function packImagesToSheet() {
 	
 	texturePacker(images, packOptions, (files, error) => {
 		if (error) {
-			console.error('Packaging failed', error);
+			errorLog(`Packaging failed: ${error}`);
 			return;
 		}
 		
@@ -86,22 +82,28 @@ function packImagesToSheet() {
 			fs.writeFileSync(outputFilePath, item.buffer);
 		}
 		
-		renameInputSheetFolderPath();
-		succesLog('Spritesheet successfully generated!');
-		
-		// после упаковки копируем шрифты
+		// порядок важен!
 		copyFontFiles();
+		renameInputSheetFolderPath();
+		
+		succesLog('Spritesheet successfully generated!');
 	});
 }
 
 function copyFontFiles() {
-	const fileList = fs.readdirSync(inputSheetFolderPath);
+	const folderPath = fs.existsSync(getInputFolderPathWithSharp())
+		? getInputFolderPathWithSharp()
+		: inputSheetFolderPath;
+	
+	if (!fs.existsSync(folderPath)) return;
+	
+	const fileList = fs.readdirSync(folderPath);
 	
 	for (const fileName of fileList) {
 		const ext = path.extname(fileName);
 		if (!fontExtensions.includes(ext)) continue;
 		
-		const src = path.resolve(inputSheetFolderPath, fileName);
+		const src = path.resolve(folderPath, fileName);
 		const dest = path.resolve(outputSheetFolderPath, fileName);
 		fs.copyFileSync(src, dest);
 	}
@@ -117,10 +119,10 @@ function renameInputSheetFolderPath() {
 }
 
 function getInputFolderPathWithSharp() {
-	return path.resolve(workFolderPath, 'assets', 'images', '#' + packedFolderName);
+	return path.resolve(workFolderPath, 'assets', 'images', `#${packedFolderName}`);
 }
 
-// ========== Логи ==========
+// =================== Logs ===================
 
 function succesLog(text) {
 	const line = '-'.repeat(text.length);

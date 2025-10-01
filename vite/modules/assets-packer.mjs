@@ -256,7 +256,9 @@ export default class AssetsPacker {
 			
 			let assetsNamesContent = '\n\nexport const assetsNames = {\n';
 			
-			assetNames.forEach(fullName => {
+			assetNames
+				.filter(fullName => !fullName.startsWith('sheets/') && !fullName.includes('/sheets/'))
+				.forEach(fullName => {
 				const nameWithoutExt = fullName.replace(/\.[^/.]+$/, '');
 				const extension = path.extname(fullName).toLowerCase();
 				const isSound = AUDIO_EXTS.includes(extension);

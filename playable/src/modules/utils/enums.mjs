@@ -115,6 +115,10 @@ export const gameStages = {
 
 
 export const assetsNames = {
+	cow1: 'cow-1',
+	cow2: 'cow-2',
+	cow3: 'cow-3',
+	cow4: 'cow-4',
 	bg: 'bg',
 	car1Bottom: 'car-1-bottom',
 	car1MilkBottom: 'car-1-milk-bottom',
@@ -175,6 +179,12 @@ export const assetsNames = {
 	soundon: 'soundOn',
 	taskfield: 'taskField',
 	truckbtn: 'truckBtn',
+	cow1: 'cow-1',
+	cow2: 'cow-2',
+	cow3: 'cow-3',
+	cow4: 'cow-4',
+	cows: 'cows',
+	cows: 'cows',
 	soundBg: 'bg',
 	soundCow: 'cow',
 	soundCowmilking: 'cowMilking',
