@@ -1,132 +1,118 @@
+import fs from 'fs';
 import clc from 'cli-color';
 import path from 'path';
 import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
+import crypto from 'crypto';
 
 import AssetsPacker from '../modules/assets-packer.mjs';
 import MoveAllFiles from '../modules/move-all-files.mjs';
 import ZipWebpackPlugin from '../modules/zip-vite-plugin.mjs';
-
 import versions from '../../playable/versions.js';
-import titlesConfig from './titles.config';
+import titlesConfig from './titles.config.js';
 
 const workFolderPath = process.env.INIT_CWD;
 const workFolderName = path.basename(workFolderPath);
 
-const inputAssetsFolderPath = path.resolve(workFolderPath, 'assets');
-const outputAssetsFolderPath = path.resolve(workFolderPath, 'src');
+const inputAssetsFolderPath = path.resolve(workFolderPath, 'playable', 'assets');
+const outputAssetsFolderPath = path.resolve(workFolderPath, 'playable', 'src');
 
-const assetsPacker = new AssetsPacker(
-	inputAssetsFolderPath,
-	outputAssetsFolderPath
-);
-const languages = assetsPacker.getLanguages();
+const assetsPacker = new AssetsPacker(inputAssetsFolderPath, outputAssetsFolderPath);
 
-const titleConfig = getTitleConfig();
-const title = getTitle();
+// Получаем languages безопасно
+let languages = [];
+try {
+	const langs = assetsPacker.getLanguages();
+	languages = Array.isArray(langs) && langs.length ? langs : ['en'];
+} catch {
+	languages = ['en'];
+}
+
+const titleConfig = getTitleConfig(workFolderName);
 const postfix = getPostfix();
-const titleFolderName = `${title}${postfix}`;
+const titleFolderName = `${getTitle()}${postfix}`;
 
-export default defineConfig(({ command, mode }) => {
-	return {
-		root: workFolderPath,
-		base: './',
-		build: {
-			outDir: path.resolve(workFolderPath, 'dist'),
-			emptyOutDir: true,
-			minify: 'esbuild',
-			target: 'es2015',
-			rollupOptions: {
-				input: path.resolve(workFolderPath, 'index.mjs'),
-				output: {
-					entryFileNames: 'main.js',
-				},
-				plugins: [
-					{
-						name: 'vite-assets-packer',
-						async buildStart() {
-							console.log(clc.green(`Start packing assets...`));
-							for (let language of languages) {
-								await new Promise(resolve =>
-									assetsPacker.pack(resolve, language)
-								);
-							}
-						},
-					},
-					{
-						name: 'vite-html-generator',
-						closeBundle() {
-							console.log(clc.green(`Generating HTML / ZIP / moving files...`));
-							for (let language of languages) {
-								getProdPlugins(language);
-								getPreviewPlugins(language);
-							}
-						},
-					},
-				],
+export default defineConfig({
+	root: workFolderPath,
+	base: './',
+	build: {
+		outDir: path.resolve(workFolderPath, 'dist'),
+		emptyOutDir: true,
+		target: 'es2015',
+		rollupOptions: {
+			input: {
+				main: path.resolve(workFolderPath, 'playable', 'index.mjs'),
+				index: path.resolve(workFolderPath, 'playable', 'index.html'),
 			},
+			output: {
+				entryFileNames: 'main.js',
+			},
+			plugins: [
+				// ==== AssetsPacker ====
+				{
+					name: 'vite-assets-packer',
+					async buildStart() {
+						console.log(clc.green('Start packing assets...'));
+						for (const language of languages) {
+							await new Promise(resolve => assetsPacker.pack(resolve, language));
+						}
+					},
+				},
+				
+				// ==== HTML + ZIP + MOVE ====
+				{
+					name: 'vite-assets-pack-and-zip',
+					closeBundle() {
+						console.log(clc.green('Generating HTML / ZIP / moving files...'));
+						languages.forEach(language => generateProdAndPreview(language));
+					},
+				},
+				
+				// ==== COPY HTML ====
+				{
+					name: 'copy-html',
+					generateBundle() {
+						const htmlPath = path.resolve(workFolderPath, 'playable', 'index.html');
+						this.emitFile({
+							type: 'asset',
+							fileName: 'index.html',
+							source: fs.readFileSync(htmlPath, 'utf-8'),
+						});
+					},
+				},
+			],
 		},
-		plugins: [
-			createHtmlPlugin({
-				inject: false,
-				minify: true,
-				template: path.resolve(
-					__dirname,
-					'..',
-					'html',
-					'dev',
-					'index-dev.html'
-				),
-				templateData: { titleKey: titleConfig.titleKey },
-			}),
-		],
-		server: {
-			open: true,
-			port: 3000,
-		},
-	};
+	},
+	plugins: [
+		createHtmlPlugin({
+			inject: false,
+			minify: true,
+			template: path.resolve(workFolderPath, 'playable', 'index.html'),
+			templateData: { titleKey: titleConfig.titleKey },
+		}),
+	],
+	server: { open: true, port: 3000 },
 });
 
-// ==== Функции аналогично Webpack ====
+// ==== HELPERS ====
 function getTitleConfig() {
-	let folderName = workFolderName.split('-')[0].replace(/\d+$/, '');
-	let counter = 0;
-	let result;
-
-	for (let gameTitleName in titlesConfig) {
-		let gameTitle = titlesConfig[gameTitleName];
-		if (
-			folderName == gameTitle.titleKey &&
-			workFolderPath.includes(gameTitle.client)
-		) {
-			counter++;
-			result = gameTitle;
+	const baseName = workFolderName.split('-')[0].replace(/\d+$/, '');
+	for (const gameTitleName in titlesConfig) {
+		const gameTitle = titlesConfig[gameTitleName];
+		if (baseName === gameTitle.titleKey && workFolderPath.includes(gameTitle.client)) {
+			return gameTitle;
 		}
 	}
-
-	if (counter > 1) console.warn(clc.red('titleKey дублируется'));
-	else if (result) return result;
-
 	return {
 		folderName: workFolderName + '_',
 		store: { ios: '', android: '' },
-		platforms: [
-			'google',
-			'ironsource',
-			'facebook',
-			'mintegral',
-			'mraid',
-			'mraidbtn',
-			'liftoff',
-			'moloco',
-			'vungle',
-		],
+		platforms: ['google','ironsource','facebook','mintegral','mraid','mraidbtn','liftoff','moloco','vungle'],
 	};
 }
 
 function getNumberVersion() {
-	let str = workFolderName.split('-')[0];
-	let match = str.match(/0*\d+/);
+	const str = workFolderName.split('-')[0];
+	const match = str.match(/0*\d+/);
 	return match ? match[0] : null;
 }
 
@@ -135,54 +121,26 @@ function getTitle() {
 }
 
 function getPostfix() {
-	if (workFolderName.includes('-'))
-		return '_' + workFolderName.split('-')[1].toLowerCase();
-	return '';
+	return workFolderName.includes('-') ? '_' + workFolderName.split('-')[1].toLowerCase() : '';
 }
 
 function getHash() {
-	let key = 'crada35034578';
-	let titleKey = workFolderName.split('-')[0].toLowerCase();
-	titleKey = titleKey.replace(getNumberVersion(), '');
-	let hash = require('crypto')
-		.createHmac('sha256', key)
+	const key = '35034578';
+	let titleKey = workFolderName.split('-')[0].toLowerCase().replace(getNumberVersion(), '');
+	let hash = crypto.createHmac('sha256', key)
 		.update(titleKey)
 		.digest('hex');
-	hash = hash.substring(2, 5) + hash.substring(8, 10);
-	return hash;
+	return hash.substring(2,5) + hash.substring(8,10);
 }
 
-// ==== Подключение прод и превью плагинов ====
-function getProdPlugins(language) {
-	// здесь ты можешь подключить ZipWebpackPlugin, MoveAllFiles и кастомные HTML генерации
-	for (let version of versions) {
-		for (let platformName of titleConfig.platforms) {
-			const folderPathTemp = path.join(
-				'prod',
-				titleFolderName,
-				version.name || '',
-				platformName,
-				language,
-				'temp'
-			);
-			const folderPath = path.join(
-				'prod',
-				titleFolderName,
-				version.name || '',
-				platformName,
-				language
-			);
+// ==== GENERATE PROD/PREVIEW ====
+function generateProdAndPreview(language) {
+	for (const version of versions) {
+		for (const platform of titleConfig.platforms) {
+			const folderPathTemp = path.join('prod', `${titleFolderName}${getNumberVersion()}${postfix}`, version.name||'', platform, language, 'temp');
+			const folderPath = path.join('prod', `${titleFolderName}${getNumberVersion()}${postfix}`, version.name||'', platform, language);
 			new MoveAllFiles({ from: folderPathTemp, to: folderPath });
 			new ZipWebpackPlugin([{ from: folderPathTemp, to: folderPath }]);
 		}
 	}
-}
-
-function getPreviewPlugins(language) {
-	const hashedFolderName = `${
-		titleConfig.folderName.split('_')[0]
-	}_${getHash()}`;
-	const htmlsFolderName = getNumberVersion() + getPostfix();
-	const htmlsFolderPath = path.join('sftp', hashedFolderName, htmlsFolderName);
-	// Здесь можно создавать preview HTML как в Webpack
 }
