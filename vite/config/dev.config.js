@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { defineConfig } from 'vite';
+import { createHtmlPlugin } from 'vite-plugin-html';
 import AssetsPackerModule from '../modules/assets-packer.mjs';
 import titlesConfig from './titles.config.js';
 const AssetsPacker = AssetsPackerModule;
@@ -68,6 +69,17 @@ export default defineConfig({
 		},
 	},
 	plugins: [
+		createHtmlPlugin({
+			template: path.resolve(workFolderPath, 'index.html'),
+			inject: {
+				data: {
+					storeIOS: titleConfig.store.ios,
+					storeAndroid: titleConfig.store.android,
+					titleKey: titleConfig.titleKey ?? 'playable_game',
+					language,
+				},
+			},
+		}),
 		{
 			name: 'vite-assets-packer',
 			buildStart() {
