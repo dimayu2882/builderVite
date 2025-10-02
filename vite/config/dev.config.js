@@ -4,8 +4,10 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
+import { viteSingleFile } from 'vite-plugin-singlefile';
 import AssetsPackerModule from '../modules/assets-packer.mjs';
 import titlesConfig from './titles.config.js';
+
 const AssetsPacker = AssetsPackerModule;
 
 const workFolderPath = './playable';
@@ -53,23 +55,28 @@ export default defineConfig({
 		port: 8080,
 		host: "0.0.0.0",
 		open: true,
+		fs: {
+			allow: ['..']
+		}
 	},
+
 	build: {
-		outDir: 'dist',
+		outDir: path.resolve('dist', 'playable'),
 		target: 'esnext',
 		sourcemap: true,
+		emptyOutDir: true,
 		rollupOptions: {
-			input: [
-				path.resolve(__dirname, '..', 'modules', 'dev-tool', 'index.mjs'),
-				path.resolve(workFolderPath, 'index.mjs'),
-			],
+			input: path.resolve(workFolderPath, 'index.mjs'),
 			output: {
 				entryFileNames: 'main.js',
-			},
-		},
+				assetFileNames: '[name][extname]'
+			}
+		}
 	},
+
 	plugins: [
 		createHtmlPlugin({
+			minify: false,
 			template: path.resolve(workFolderPath, 'index.html'),
 			inject: {
 				data: {
@@ -80,10 +87,16 @@ export default defineConfig({
 				},
 			},
 		}),
+
+		// Плагин для упаковки всех ресурсов в один HTML
+		viteSingleFile({
+			removeViteModuleLoader: true,
+			silent: true
+		}),
+
 		{
 			name: 'vite-assets-packer',
 			buildStart() {
-				// Используем уже определённый язык без небезопасного eval
 				const currentLanguage = language || 'en';
 				if (assetsPacker.defaultLanguage !== currentLanguage) {
 					assetsPacker.defaultLanguage = currentLanguage;
