@@ -29,7 +29,6 @@ lerna-debug.log*
 /build.zip
 /.vite
 *.local
-/prod
 
 # Окружение
 .env
