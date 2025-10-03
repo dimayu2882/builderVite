@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Playable</title>
+	
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, width=device-width, height=device-height, viewport-fit=cover, user-scalable=no">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	
+	<link rel="stylesheet" href="./index.css" inline>
+	
+	<script>
+		window.addEventListener('load', onWindowLoaded);
+		
+		function onWindowLoaded() {
+			window.removeEventListener('load', onWindowLoaded);
+			
+			if (typeof mraid !== 'undefined') {
+				if (mraid.getState() === 'loading') {
+					mraid.addEventListener('ready', mraidIsReady);
+				} else {
+					mraidIsReady();
+				}
+			} else {
+				initApplication();
+			}
+			
+		}
+		
+		function mraidIsReady() {
+			mraid.removeEventListener('ready', mraidIsReady);
+			
+			if (mraid.isViewable()) {
+				initApplication();
+			} else {
+				mraid.addEventListener('viewableChange', mraidViewableChange);
+			}
+		}
+		
+		function mraidViewableChange(viewable) {
+			if (viewable) {
+				mraid.removeEventListener('viewableChange', mraidViewableChange);
+				initApplication();
+			}
+		}
+		
+		function initApplication() {
+			app.settings.versionId = Number('<%= htmlWebpackPlugin.options.versionId %>');
+			app.settings.store = {
+				ios: '<%= htmlWebpackPlugin.options.storeIOS %>',
+				android: '<%= htmlWebpackPlugin.options.storeAndroid %>'
+			};
+			//app.settings.isDownloadButton = false;
+			app.settings.isSoundButton = true;
+			app.settings.platform = 'mraid';
+			app.settings.language = '<%= htmlWebpackPlugin.options.language %>';
+			app.settings.titleKey = '<%= htmlWebpackPlugin.options.titleKey %>';
+			Object.freeze(app.settings);
+			
+			var isAudioEnabled = true;
+			
+			if (typeof mraid !== 'undefined') {
+				mraid.addEventListener('audioVolumeChange', function(volumePercentage) {
+					if (volumePercentage && volumePercentage >= 10.0) {
+						isAudioEnabled = true;
+					} else {
+						isAudioEnabled = false;
+					}
+					if (app.sound) {
+						isAudioEnabled ? app.sound.unmute() : app.sound.mute();
+					}
+				});
+			}
+			
+			app.init();
+			app.openStore = openStore;
+			if (!isAudioEnabled) {
+				app.sound.mute();
+			}
+			;
+			
+			if (typeof mraid !== 'undefined') {
+				mraid.addEventListener('orientationchange', mraidOrientationChange);
+			}
+			
+			document.getElementById('loader').classList.add('hidden');
+		}
+		
+		function mraidOrientationChange() {
+			app.resize.onWindowResize();
+		}
+		
+		function openStore() {
+			if (typeof mraid !== 'undefined') {
+				mraid.open(app.storeLink);
+			} else {
+				window.open(app.storeLink, '_blank');
+			}
+		}
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+<div id="loader"></div>
+<div id="main">
+	<div id="canvas3d"></div>
+	<div id="canvas2d"></div>
+</div>
+</body>
+
+<script src="./main.js" inline></script>
+
+</html>

@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "NODE_ENV=development vite --config vite/config/dev.config.js",
-		"build": "vite build --config vite/config/prod.config.js",
+		"build": "vite build --config vite.simple.config.js",
 		"build:inline": "vite build --config vite/config/prod.inline.config.js",
 		"pack": "node vite/config/pack.config.js",
 		"blank2D": "node vite/config/blank.config.js blank2D",

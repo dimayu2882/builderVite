@@ -88,7 +88,12 @@ export default defineConfig({
 			inject: false,
 			minify: true,
 			template: path.resolve(workFolderPath, 'playable', 'index.html'),
-			templateData: { titleKey: titleConfig.titleKey },
+			templateData: {
+				titleKey: titleConfig.titleKey,
+				storeIOS: titleConfig.store.ios,
+				storeAndroid: titleConfig.store.android,
+				language: languages[0],
+			},
 		}),
 	],
 	server: { open: true, port: 3000 },

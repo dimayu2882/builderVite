@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Playable</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport"
+	      content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, width=device-width, height=device-height, viewport-fit=cover, user-scalable=no">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	
+	<link rel="stylesheet" href="./index.css" inline>
+	
+	<script src="./main.js" inline></script>
+	
+	<script>
+		window.addEventListener('load', onWindowLoaded);
+		
+		function onWindowLoaded() {
+			window.removeEventListener('load', onWindowLoaded);
+			initApplication();
+		}
+		
+		function initApplication() {
+			app.settings.versionId = Number('<%= htmlWebpackPlugin.options.versionId %>');
+			app.settings.isSoundButton = false;
+			app.settings.platform = 'moloco';
+			app.settings.language = '<%= htmlWebpackPlugin.options.language %>';
+			app.settings.titleKey = '<%= htmlWebpackPlugin.options.titleKey %>';
+			Object.freeze(app.settings);
+			app.init();
+			app.openStore = openStore;
+		}
+		
+		function openStore() {
+			FbPlayableAd.onCTAClick();
+		}
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+<div id="main">
+	<div id="canvas3d"></div>
+	<div id="canvas2d"></div>
+</div>
+</body>
+
+</html>
